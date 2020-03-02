@@ -1,6 +1,7 @@
 package com.itstack.netty.server;
 
 import com.itstack.netty.handler.TcpServerHandler;
+import com.itstack.netty.initialzer.TcpServerInitalizer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -29,8 +30,8 @@ public class TcpNettyServer {
         server.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         server.option(ChannelOption.SO_KEEPALIVE,true);
         //注意服务端这里一定要用childHandler 不能用handler 否则会报错
-        server.childHandler(new TcpServerHandler());
-
+//        server.childHandler(new TcpServerHandler());
+        server.childHandler(new TcpServerInitalizer());
     }
 
     public static void run(int port){

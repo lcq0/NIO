@@ -13,11 +13,10 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 import java.nio.charset.Charset;
 
-/**
- * Created by jack on 2018/5/5.
- */
+
 public class TcpServerHandler extends ChannelInboundHandlerAdapter {
 
+	
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
@@ -25,6 +24,11 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
             ByteBuf req = (ByteBuf)msg;
             String content = req.toString(Charset.defaultCharset());
             System.out.println("服务端开始读取客户端的请求数据:"+content);
+            if(msg.toString().equals("ping")){ 
+                ctx.channel().writeAndFlush("ping");
+                ctx.channel().writeAndFlush("EXT");
+                return ;
+            }
             //获取客户端的请求信息
              ServerRequest request = JSONObject.parseObject(content,ServerRequest.class);
             JSONObject user = (JSONObject) request.getContent();
@@ -34,9 +38,9 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
             res.setId(request.getId());
             res.setContent(user);
             //先写入
-            ctx.channel().write(JSONObject.toJSONString(res));
+            ctx.channel().writeAndFlush(JSONObject.toJSONString(res));
             //再一起刷新
-            ctx.channel().writeAndFlush("\r\n");
+            ctx.channel().writeAndFlush("EXT");
             System.out.println("      ");
         }
     }
@@ -53,9 +57,10 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.close();
             }else if(event.equals(IdleState.WRITER_IDLE)){
                 System.out.println("写空闲====");
+                ctx.channel().writeAndFlush("pingEXT");
             }else if(event.equals(IdleState.WRITER_IDLE)){
                 System.out.println("读写空闲====");
-                ctx.channel().writeAndFlush("ping\r\n");
+                ctx.channel().writeAndFlush("pingEXT");
             }
 
         }

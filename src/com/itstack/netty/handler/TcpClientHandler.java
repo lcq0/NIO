@@ -17,7 +17,8 @@ public class TcpClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     	//判断服务端和客户端是在能够正常通信的情况下
         if(msg.toString().equals("ping")){ 
-            ctx.channel().writeAndFlush("ping\r\n");
+            ctx.channel().writeAndFlush("ping");
+            ctx.channel().writeAndFlush("EXT");
             return ;
         }
         System.out.println("客户端获取到服务端响应数据:"+msg.toString());
@@ -27,6 +28,7 @@ public class TcpClientHandler extends ChannelInboundHandlerAdapter {
         Response res = JSONObject.parseObject(str, Response.class);
         //存储响应结果
         DefaultFuture.recive(res);
+        
     }
 
     private JSONObject getJSONObject(String str){
