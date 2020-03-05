@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.itstack.netty.bean.Response;
 import com.itstack.netty.bean.ServerRequest;
 import com.itstack.netty.bean.User;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -18,20 +19,25 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
 
 	
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if(msg instanceof ByteBuf){
             ByteBuf req = (ByteBuf)msg;
             String content = req.toString(Charset.defaultCharset());
             System.out.println("服务端开始读取客户端的请求数据:"+content);
-            if(msg.toString().equals("ping")){ 
+            if(content.equalsIgnoreCase("ping")){ 
                 ctx.channel().writeAndFlush("ping");
-                ctx.channel().writeAndFlush("EXT");
+                ctx.channel().writeAndFlush("ETX");
                 return ;
             }
             //获取客户端的请求信息
-             ServerRequest request = JSONObject.parseObject(content,ServerRequest.class);
-            JSONObject user = (JSONObject) request.getContent();
+             final ServerRequest request = JSONObject.parseObject(content,ServerRequest.class);
+             if (request.getId()==2) {
+            	 ctx.channel().writeAndFlush("ping");
+                 ctx.channel().writeAndFlush("ETX");
+                 return ;
+			}
+            final JSONObject user = (JSONObject) request.getContent();
             user.put("success","ok");
             //写入解析请求之后结果对应的响应信息
              Response res = new Response();
@@ -40,7 +46,7 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
             //先写入
             ctx.channel().writeAndFlush(JSONObject.toJSONString(res));
             //再一起刷新
-            ctx.channel().writeAndFlush("EXT");
+            ctx.channel().writeAndFlush("ETX");
             System.out.println("      ");
         }
     }
@@ -57,10 +63,10 @@ public class TcpServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.close();
             }else if(event.equals(IdleState.WRITER_IDLE)){
                 System.out.println("写空闲====");
-                ctx.channel().writeAndFlush("pingEXT");
+                ctx.channel().writeAndFlush("pingETX");
             }else if(event.equals(IdleState.WRITER_IDLE)){
                 System.out.println("读写空闲====");
-                ctx.channel().writeAndFlush("pingEXT");
+                ctx.channel().writeAndFlush("pingETX");
             }
 
         }

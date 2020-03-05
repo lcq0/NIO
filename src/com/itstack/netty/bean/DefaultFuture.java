@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by jack on 2018/5/5.
+ * 
  * 管理请求和响应的关系
  * 主要是通过唯一的请求标识id
  */
